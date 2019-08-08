@@ -115,9 +115,15 @@ public class DeleteSolutionMojo extends AbstractMojo {
 
         StringWriter stringWriter = new StringWriter();
         FileWriter fileWriter;
-        template.merge(velocityContext, stringWriter);
         try {
-            fileWriter = new FileWriter(new File(packageTestPath.getAbsolutePath() + File.separator + "SolutionTest.java"), false);
+            File solutionTestFile = new File(packageTestPath.getAbsolutePath() + File.separator + "SolutionTest.java");
+            String testCasesStr = "// todo add your test cases here";
+            if (solutionTestFile.exists()) {
+                testCasesStr = TemplateUtils.getSolutionTestCases(solutionTestFile);
+            }
+            velocityContext.put("testCasesStr", testCasesStr);
+            template.merge(velocityContext, stringWriter);
+            fileWriter = new FileWriter(solutionTestFile, false);
             fileWriter.write(stringWriter.toString());
             fileWriter.flush();
             fileWriter.close();

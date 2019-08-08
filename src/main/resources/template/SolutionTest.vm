@@ -36,7 +36,7 @@ public class SolutionTest {
     @Parameters
     public static Collection<Object[]> testCases() {
         return Arrays.asList(new Object[][]{
-            // todo add your test cases here
+$testCasesStr
         });
     }
 
