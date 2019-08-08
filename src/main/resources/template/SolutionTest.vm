@@ -1,0 +1,58 @@
+package ${packageName}.${problemCategory}._${problemNo}_$problemName;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+@RunWith(Parameterized.class)
+public class SolutionTest {
+
+#foreach($paramKv in $paramKvMap.entrySet())
+    private $paramKv.key $paramKv.value;
+#end
+
+    private $methodReturnType expected;
+
+#foreach($solution in $solutionMap.entrySet())
+    private $solution.key $solution.value;
+#end
+
+    public SolutionTest($paramKvStr, $methodReturnType expected) {
+    #foreach($paramKv in $paramKvMap.entrySet())
+        this.$paramKv.value = $paramKv.value;
+    #end
+        this.expected = expected;
+    }
+
+    @Parameters
+    public static Collection<Object[]> testCases() {
+        return Arrays.asList(new Object[][]{
+            // todo add your test cases here
+        });
+    }
+
+    @Before
+    public void setUp() throws Exception {
+    #foreach($solution in $solutionMap.entrySet())
+        $solution.value = new ${solution.key}();
+    #end
+    }
+
+    @Test
+    public void ${methodName}() {
+    #foreach($solution in $solutionMap.entrySet())
+        $methodReturnType ${solution.value}Actual = ${solution.value}.${methodName}(${paramNameStr});
+        assertThat(${solution.value}Actual, is(equalTo(expected)));
+
+    #end
+    }
+}

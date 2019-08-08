@@ -1,0 +1,15 @@
+package ${packageName}.${problemCategory}._${problemNo}_$problemName;
+
+// Date: $generateDate
+
+$problemDescription
+
+// Time complexity:
+// Space complexity:
+
+// Notes:
+
+public class $className {
+
+    ${problemMethodStructure}
+}
