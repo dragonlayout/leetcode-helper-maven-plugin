@@ -82,7 +82,7 @@ public class GenerateSolutionMojo extends AbstractMojo {
             velocityContext.put("problemNo", problemNo);
             velocityContext.put("problemName", problemName);
             velocityContext.put("interfaceName", "Solution");
-            velocityContext.put("problemMethodStructure", problemMethodStructure.replaceAll("\\{", "").replaceAll("}", ""));
+            velocityContext.put("problemMethodStructure", problemMethodStructure.replaceAll("\\{", "").replaceAll("}", "").trim());
             template.merge(velocityContext, stringWriter);
             try {
                 fileWriter = new FileWriter(solutionInterfaceFile);
