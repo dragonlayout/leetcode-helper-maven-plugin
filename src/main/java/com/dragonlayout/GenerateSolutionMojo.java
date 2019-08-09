@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Mojo(name = "generateSolution", defaultPhase = LifecyclePhase.NONE)
@@ -64,28 +65,53 @@ public class GenerateSolutionMojo extends AbstractMojo {
                 problemCategory, "_" + problemNo + "_" + problemName).toString());
         boolean srcPackagePathMkdirResult = packageSrcPath.mkdirs();
         if (srcPackagePathMkdirResult) {
-            getLog().info("src directory not exist, create directory success");
+            getLog().info("src directory not exist, create directory successfully.");
         } else {
-            getLog().info("src directory already exist");
+            getLog().info("src directory already exist.");
         }
-        // 2. 建立 Solution 文件
-        int solutionFileCount = PathUtils.getSolutionFileIndex(packageSrcPath.toPath());
         VelocityEngine ve = TemplateUtils.getVe();
-        Template template = ve.getTemplate("template/Solution.vm", "UTF-8");
+        Template template = ve.getTemplate("template/SolutionInterface.vm", "UTF-8");
         VelocityContext velocityContext = new VelocityContext();
+        StringWriter stringWriter = new StringWriter();
+        FileWriter fileWriter;
+        // create Solution.java interface file
+        File solutionInterfaceFile = new File(packageSrcPath.getAbsolutePath() + File.separator + "Solution.java");
+        if (!solutionInterfaceFile.exists()) {
+            velocityContext.put("packageName", packageName);
+            velocityContext.put("problemCategory", problemCategory);
+            velocityContext.put("problemNo", problemNo);
+            velocityContext.put("problemName", problemName);
+            velocityContext.put("interfaceName", "Solution");
+            velocityContext.put("problemMethodStructure", problemMethodStructure.replaceAll("\\{", "").replaceAll("}", ""));
+            template.merge(velocityContext, stringWriter);
+            try {
+                fileWriter = new FileWriter(solutionInterfaceFile);
+                fileWriter.write(stringWriter.toString());
+                fileWriter.flush();
+                fileWriter.close();
+            } catch (IOException e) {
+                getLog().error("Generate Solution.java interface file failed.", e);
+                return;
+            }
+        } else {
+            getLog().info("Solution.java interface file already exist.");
+        }
+
+        // 2. 建立 Solution 文件
+        int solutionImplementationFileCount = PathUtils.getSolutionImplementationFileCount(packageSrcPath.toPath());
+        template = ve.getTemplate("template/Solution.vm", "UTF-8");
         velocityContext.put("packageName", packageName);
         velocityContext.put("problemCategory", problemCategory);
         velocityContext.put("problemNo", problemNo);
         velocityContext.put("problemName", problemName);
         velocityContext.put("generateDate", new SimpleDateFormat("yyyy/dd/MM HH:mm:ss").format(new Date()));
         velocityContext.put("problemDescription", problemDescription);
-        velocityContext.put("className", solutionFileCount == 0 ? "Solution" : "Solution" + solutionFileCount);
+        velocityContext.put("className", "Solution" + (solutionImplementationFileCount + 1));
         velocityContext.put("problemMethodStructure", problemMethodStructure);
 
-        StringWriter stringWriter = new StringWriter();
+        stringWriter = new StringWriter();
         template.merge(velocityContext, stringWriter);
-        String solutionFileName = solutionFileCount == 0 ? "Solution.java" : "Solution" + solutionFileCount + ".java";
-        FileWriter fileWriter;
+        String solutionFileName = "Solution" + (solutionImplementationFileCount + 1) + ".java";
         try {
             fileWriter = new FileWriter(new File(packageSrcPath.getAbsolutePath() + File.separator + solutionFileName));
             fileWriter.write(stringWriter.toString());
@@ -93,14 +119,14 @@ public class GenerateSolutionMojo extends AbstractMojo {
             fileWriter.close();
             stringWriter.close();
         } catch (IOException e) {
-            getLog().error("generate " + solutionFileName + " failed", e);
+            getLog().error("Generate " + solutionFileName + " failed.", e);
             return;
         }
-        getLog().info(" generate " +solutionFileName + " successfully");
+        getLog().info("Generate " +solutionFileName + " successfully.");
 
         getLog().info("");
         getLog().info("------------------------------------------------------------------------");
-        getLog().info("create test directory");
+        getLog().info("Create test directory");
         getLog().info("------------------------------------------------------------------------");
         // 1. create test directory
         File packageTestPath = new File(Paths.get(testDirPath,
@@ -110,12 +136,12 @@ public class GenerateSolutionMojo extends AbstractMojo {
         ).toAbsolutePath().toString());
         boolean packageTestPathMkdirResult = packageTestPath.mkdirs();
         if (packageTestPathMkdirResult) {
-            getLog().info("test directory not exist, create directory successfully");
+            getLog().info("test directory not exist, create directory successfully.");
         } else {
-            getLog().info("test directory already exist");
+            getLog().info("test directory already exist.");
         }
         // 2. generate test file
-        solutionFileCount = PathUtils.getSolutionFileIndex(packageSrcPath.toPath());
+        solutionImplementationFileCount = PathUtils.getSolutionImplementationFileCount(packageSrcPath.toPath());
 
         template = ve.getTemplate("template/SolutionTest.vm", "UTF-8");
         velocityContext = new VelocityContext();
@@ -135,22 +161,25 @@ public class GenerateSolutionMojo extends AbstractMojo {
         // param name list
         String paramNameList = ProblemMethodUtils.getSolutionMethodParamNameList(problemMethodStructure);
         // solution field
-        Map<String, String> solutionMap = ProblemMethodUtils.getSolutionFieldMap(solutionFileCount);
+        List<String> solutionDefinitionList = ProblemMethodUtils.getSolutionDefinitionList(solutionImplementationFileCount);
         velocityContext.put("methodReturnType", returnType);
         velocityContext.put("methodName", methodName);
         velocityContext.put("paramKvStr", paramStr);
         velocityContext.put("paramKvMap", paramMap);
         velocityContext.put("paramNameStr", paramNameList);
-        velocityContext.put("solutionMap", solutionMap);
+        velocityContext.put("solutionDefinitionList", solutionDefinitionList);
 
         stringWriter = new StringWriter();
         try {
             File solutionTestFile = new File(packageTestPath.getAbsolutePath() + File.separator + "SolutionTest.java");
             String testCasesStr = "// todo add your test cases here";
+            boolean noTestCases = true;
             if (solutionTestFile.exists()) {
+                noTestCases = false;
                 testCasesStr = TemplateUtils.getSolutionTestCases(solutionTestFile);
             }
             velocityContext.put("testCasesStr", testCasesStr);
+            velocityContext.put("noTestCases", noTestCases);
             template.merge(velocityContext, stringWriter);
             fileWriter = new FileWriter(solutionTestFile, false);
             fileWriter.write(stringWriter.toString());
@@ -158,8 +187,8 @@ public class GenerateSolutionMojo extends AbstractMojo {
             fileWriter.close();
             stringWriter.close();
         } catch (IOException e) {
-            getLog().error("generate SolutionTest.java failed", e);
+            getLog().error("Generate SolutionTest.java failed.", e);
         }
-        getLog().info("generate SolutionTest.java successfully");
+        getLog().info("Generate SolutionTest.java successfully.");
     }
 }

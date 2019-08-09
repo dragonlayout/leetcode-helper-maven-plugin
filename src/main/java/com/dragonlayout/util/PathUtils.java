@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 public class PathUtils {
 
@@ -22,13 +23,13 @@ public class PathUtils {
         return getProjectPath(project, "src", "main", "resources");
     }
 
-    public static int getSolutionFileIndex(Path packageFile) {
+    public static int getSolutionImplementationFileCount(Path packageFile) {
         try {
             return (int) Files.list(packageFile)
                     .filter(path -> {
                         String[] paths = path.toString().split(File.separator);
                         String filename = paths[paths.length - 1];
-                        return filename.startsWith("Solution") && filename.endsWith(".java");
+                        return Pattern.matches("Solution[0-9]+.java", filename);
                     }).count();
         } catch (IOException e) {
             e.printStackTrace();

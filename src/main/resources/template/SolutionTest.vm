@@ -22,9 +22,7 @@ public class SolutionTest {
 
     private $methodReturnType expected;
 
-#foreach($solution in $solutionMap.entrySet())
-    private $solution.key $solution.value;
-#end
+    private Solution solution;
 
     public SolutionTest($paramKvStr, $methodReturnType expected) {
     #foreach($paramKv in $paramKvMap.entrySet())
@@ -36,23 +34,32 @@ public class SolutionTest {
     @Parameters
     public static Collection<Object[]> testCases() {
         return Arrays.asList(new Object[][]{
+        #if(${noTestCases})
+            $testCasesStr
+        #else
 $testCasesStr
+        #end
         });
     }
 
     @Before
     public void setUp() throws Exception {
-    #foreach($solution in $solutionMap.entrySet())
-        $solution.value = new ${solution.key}();
+    #if($solutionDefinitionList.size() == 1)
+        $solutionDefinitionList.get(0)
+    #else
+        #foreach($solutionDefinition in ${solutionDefinitionList})
+            #if($!{velocityCount} < $solutionDefinitionList.size())
+        $solutionDefinition
+            #else
+        $solutionDefinition
+            #end
+        #end
     #end
     }
 
     @Test
     public void ${methodName}() {
-    #foreach($solution in $solutionMap.entrySet())
-        $methodReturnType ${solution.value}Actual = ${solution.value}.${methodName}(${paramNameStr});
-        assertThat(${solution.value}Actual, is(equalTo(expected)));
-
-    #end
+        $methodReturnType actual = solution.${methodName}(${paramNameStr});
+        assertThat(actual, is(equalTo(expected)));
     }
 }

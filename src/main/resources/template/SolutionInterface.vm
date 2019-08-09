@@ -1,0 +1,7 @@
+package ${packageName}.${problemCategory}._${problemNo}_$problemName;
+
+
+public interface $interfaceName {
+
+${problemMethodStructure}
+}

@@ -9,7 +9,8 @@ $problemDescription
 
 // Notes:
 
-public class $className {
+public class $className implements Solution {
 
+    @Override
     ${problemMethodStructure}
 }

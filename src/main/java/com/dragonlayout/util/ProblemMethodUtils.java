@@ -1,7 +1,6 @@
 package com.dragonlayout.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ProblemMethodUtils {
 
@@ -35,15 +34,15 @@ public class ProblemMethodUtils {
         return paramNameList.toString().substring(0, paramNameList.length() - 2);
     }
 
-    public static Map<String, String> getSolutionFieldMap(int solutionFileCount) {
-        Map<String, String> solutionMap = new LinkedHashMap<>();
-        for (int i = 0; i < solutionFileCount; i++) {
-            if (i == 0) {
-                solutionMap.put("Solution", "solution");
-            } else {
-                solutionMap.put("Solution" + i, "solution" + i);
-            }
+    public static List<String> getSolutionDefinitionList(int solutionFileCount) {
+        List<String> solutionDefinitionList = new ArrayList<>();
+        for (int i = 1; i <= solutionFileCount; i++) {
+            solutionDefinitionList.add("// solution = new Solution" + i + "();");
         }
-        return solutionMap;
+        if (solutionDefinitionList.size() != 0) {
+            solutionDefinitionList.remove(solutionDefinitionList.size() - 1);
+            solutionDefinitionList.add("solution = new Solution" + solutionFileCount + "();");
+        }
+        return solutionDefinitionList;
     }
 }
